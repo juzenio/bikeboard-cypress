@@ -20,7 +20,7 @@ describe('Cadastro de Anúncio', () => {
       .should('be.visible')
 
     cy.contains('Seu anúncio foi enviado para nossa equipe de moderação')
-      .should('visible')
+      .should('be.visible')
   })
 
   it('deve exibir erros para todos os campos obrigatórios não preenchidos', () => {
