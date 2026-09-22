@@ -18,7 +18,8 @@
     "serve": "14.2.5"
   },
   "devDependencies": {
-    "cypress": "^14.5.4"
+    "cypress": "^14.5.4",
+    "cypress-mochawesome-reporter": "^5.0.0"
   },
   "allowScripts": {
     "cypress@14.5.4": true

@@ -17,3 +17,4 @@
 import './commands'
 
 import './mocks/ads.mocks'
+import 'cypress-mochawesome-reporter/register';

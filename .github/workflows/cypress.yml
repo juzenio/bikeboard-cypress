@@ -20,7 +20,7 @@ jobs:
 
       - name: Executar Containers e Rodar Testes
         env:
-          # 🧠 A TRÍPLICE COROA DA LOGICA:
+          #  A TRÍPLICE COROA DA LOGICA:
           # Opção 1: Se você digitou algo no input manual, ele usa.
           # Opção 2: Se o input ficou vazio, ele tenta ler o cofre 'secrets.MINHA_URL_SECRETA'.
           # Opção 3: Se o cofre também não existir, ele cai no plano C e usa o 'http://web:3000' local.
@@ -28,12 +28,10 @@ jobs:
         run: |
            docker compose up --abort-on-container-exit --exit-code-from cypress || true
 
-      - name: Salvar Screenshots de Falha (Nativo)
-        if: always() # Garante que o passo vai rodar mesmo com os testes falhando
+      - name: Salvar Relatório HTML de Testes (Estilo Playwright)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: evidencias-de-falha-cypress
-          # 🧠 IMPORTANTE: "ignore" faz o GitHub não dar erro se todos os testes passarem 
-          # (já que a pasta de screenshots só nasce se houver um erro real)
+          name: relatorio-de-testes-html
+          path: cypress/reports/ # Captura o HTML com os prints já embutidos dentro dele!
           if-no-files-found: ignore
-          path: cypress/screenshots/
