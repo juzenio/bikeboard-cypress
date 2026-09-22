@@ -29,18 +29,12 @@ jobs:
         run: |
           docker compose up --abort-on-container-exit --exit-code-from cypress
 
-      # 📊 PASSO 1: Transforma o JSON do Cypress em um site HTML do CTRF
-      - name: Gerar Site HTML do Relatório
-        if: always()
-        run: |
-          npx github-actions-ctrf ctrf/ctrf-report.json
-          # O comando abaixo converte o relatório em uma página web dentro de uma pasta chamada 'public'
-          npx ctrf html ctrf/ctrf-report.json --output public
-
-      # 🌐 PASSO 2: Pega a pasta 'public' e publica no seu GitHub Pages!
-      - name: Publicar Relatório no GitHub Pages 🚀
-        if: always()
-        uses: PavanMudigonda/html-reporter-github-pages@v1.5.21
+      # 👇 CORREÇÃO AQUI: Garante permissões e avisa para não falhar se os testes passarem
+      - name: Salvar Evidências e Prints do Cypress
+        if: always() # Sempre executa este passo
         with:
-          test_results: 'public' # Pasta onde salvamos o site do relatório
-          keep_reports: true     # Mantém o histórico dos testes anteriores salvos lá!
+          name: evidencias-cypress
+          path: |
+            cypress/screenshots/
+            cypress/videos/
+          if-no-files-found: ignore # 👈 Evita mensagens de erro caso todos os testes passem (sem prints)
