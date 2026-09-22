@@ -26,7 +26,7 @@ jobs:
           # Opção 3: Se o cofre também não existir, ele cai no plano C e usa o 'http://web:3000' local.
           CYPRESS_BASE_URL: ${{ github.event.inputs.ambiente_url || secrets.MINHA_URL_SECRETA || 'http://web:3000' }}
         run: |
-           docker compose up --abort-on-container-exit --exit-code-from cypress || true
+           docker compose up --abort-on-container-exit --exit-code-from cypress
 
       - name: Salvar Relatório HTML de Testes (Estilo Playwright)
         if: always()
