@@ -1,21 +1,38 @@
-name: Cypress
+name: Execução de Testes Cypress via Docker
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
+    branches: [ main ] # Dispara automático no push
+  workflow_dispatch:  # Ativa o botão para execução manual
+    inputs:
+      ambiente_url:
+        description: 'Digite uma URL (Em branco: tenta o Segredo do GitHub; Se não houver Segredo: usa o site Local)'
+        required: false
+        default: '' # Nasce vazio para priorizar o cofre ou o local
 
 jobs:
-  e2e:
-    runs-on: ubuntu-latest
+  rodar-testes:
+    runs-on: ubuntu-latest # Máquina do GitHub com Docker de fábrica
 
     steps:
-      - name: Checkout
+      - name: Baixar código do repositório
         uses: actions/checkout@v4
 
-      - name: Run Cypress with Docker Compose
-        run: docker compose up --build --abort-on-container-exit --exit-code-from cypress
+      - name: Executar Containers e Rodar Testes
+        env:
+          # 🧠 A TRÍPLICE COROA DA LOGICA:
+          # Opção 1: Se você digitou algo no input manual, ele usa.
+          # Opção 2: Se o input ficou vazio, ele tenta ler o cofre 'secrets.MINHA_URL_SECRETA'.
+          # Opção 3: Se o cofre também não existir, ele cai no plano C e usa o 'http://web:3000' local.
+          CYPRESS_BASE_URL: ${{ github.event.inputs.ambiente_url || secrets.MINHA_URL_SECRETA || 'http://web:3000' }}
+        run: |
+          docker compose up --abort-on-container-exit --exit-code-from cypress
 
-      - name: Remove containers
+      - name: Salvar Evidências e Prints do Cypress
         if: always()
-        run: docker compose down --volumes
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-cypress
+          path: |
+            cypress/screenshots/
+            cypress/videos/
