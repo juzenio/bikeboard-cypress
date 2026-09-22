@@ -3,12 +3,13 @@ services:
     image: node:22-alpine
     working_dir: /app
     volumes:
-      - .:/app            
+      - .:/app
+      - /app/node_modules
     ports:
-      - "3000:3000"      
-    command: npm run start
+      - "3000:3000"
+    command: sh -c "npm install --no-fund --no-audit && npm run start"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:3000 || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 10
