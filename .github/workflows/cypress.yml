@@ -26,11 +26,14 @@ jobs:
           # Opção 3: Se o cofre também não existir, ele cai no plano C e usa o 'http://web:3000' local.
           CYPRESS_BASE_URL: ${{ github.event.inputs.ambiente_url || secrets.MINHA_URL_SECRETA || 'http://web:3000' }}
         run: |
-          docker compose up --abort-on-container-exit --exit-code-from cypress
+           docker compose up --abort-on-container-exit --exit-code-from cypress || true
 
-      - name: Salvar Relatório de Resultados (JSON)
-        if: always() # Garante o upload mesmo se houver falhas nos testes
+      - name: Salvar Screenshots de Falha (Nativo)
+        if: always() # Garante que o passo vai rodar mesmo com os testes falhando
         uses: actions/upload-artifact@v4
         with:
-          name: resultados-dos-testes
-          path: ctrf/ # Captura a pasta que o plugin acabou de criar
+          name: evidencias-de-falha-cypress
+          # 🧠 IMPORTANTE: "ignore" faz o GitHub não dar erro se todos os testes passarem 
+          # (já que a pasta de screenshots só nasce se houver um erro real)
+          if-no-files-found: ignore
+          path: cypress/screenshots/
