@@ -2,18 +2,13 @@ name: Execução de Testes Cypress via Docker
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       ambiente_url:
         description: 'Digite uma URL (Em branco: tenta o Segredo do GitHub; Se não houver Segredo: usa o site Local)'
         required: false
         default: ''
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 jobs:
   rodar-testes:
@@ -23,20 +18,18 @@ jobs:
       - name: Baixar código do repositório
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Instalar dependências
-        run: npm ci
-
       - name: Executar Containers e Rodar Testes
         env:
           CYPRESS_BASE_URL: ${{ github.event.inputs.ambiente_url || secrets.MINHA_URL_SECRETA || 'http://web:3000' }}
         run: |
-          docker compose up --build --abort-on-container-exit --exit-code-from cypress
+          docker compose up --abort-on-container-exit --exit-code-from cypress
+
+      # 📊 PASSO NOVO: Lê o relatório do Cypress e desenha na página do GitHub
+      - name: Publicar Resultado dos Testes na Página do GitHub
+        if: always() # Garante que vai desenhar a tabela mesmo se algum teste falhar
+        run: |
+          # O npx roda a ferramenta CTRF que lê o JSON gerado e joga no sumário do GitHub
+          npx github-actions-ctrf ctrf/ctrf-report.json
 
       - name: Salvar Evidências e Prints do Cypress
         if: always()
@@ -47,48 +40,3 @@ jobs:
             cypress/screenshots/
             cypress/videos/
           if-no-files-found: ignore
-
-      - name: Gerar página HTML do relatório
-        if: always()
-        run: |
-          mkdir -p public
-          cat > public/index.html <<HTML
-          <!doctype html>
-          <html lang="pt-BR">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Relatório Cypress</title>
-            <style>
-              body { font-family: Arial, sans-serif; margin: 40px; }
-              .ok { color: green; }
-              .fail { color: red; }
-            </style>
-          </head>
-          <body>
-            <h1>Relatório de Testes Cypress</h1>
-            <p>Execução finalizada.</p>
-            <p>Os artefatos também foram salvos na aba de artefatos do workflow.</p>
-          </body>
-          </html>
-          HTML
-
-      - name: Publicar no GitHub Pages
-        if: always()
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./public
-
-  deploy:
-    needs: rodar-testes
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy para GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
