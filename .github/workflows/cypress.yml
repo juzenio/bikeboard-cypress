@@ -2,17 +2,22 @@ name: Execução de Testes Cypress via Docker
 
 on:
   push:
-    branches: [ main ] # Dispara automático no push
-  workflow_dispatch:  # Ativa o botão para execução manual
+    branches: [ main ]
+  workflow_dispatch:
     inputs:
       ambiente_url:
         description: 'Digite uma URL (Em branco: tenta o Segredo do GitHub; Se não houver Segredo: usa o site Local)'
         required: false
-        default: '' # Nasce vazio para priorizar o cofre ou o local
+        default: ''
+
+# 🔐 PERMISSÕES OBRIGATÓRIAS: Dá autorização para a pipeline criar o site do GitHub Pages
+permissions:
+  contents: write # Permite criar a ramificação (branch) do site
+  pages: write    # Permite publicar o site na internet
 
 jobs:
   rodar-testes:
-    runs-on: ubuntu-latest # Máquina do GitHub com Docker de fábrica
+    runs-on: ubuntu-latest
 
     steps:
       - name: Baixar código do repositório
@@ -20,19 +25,22 @@ jobs:
 
       - name: Executar Containers e Rodar Testes
         env:
-          # 🧠 A TRÍPLICE COROA DA LOGICA:
-          # Opção 1: Se você digitou algo no input manual, ele usa.
-          # Opção 2: Se o input ficou vazio, ele tenta ler o cofre 'secrets.MINHA_URL_SECRETA'.
-          # Opção 3: Se o cofre também não existir, ele cai no plano C e usa o 'http://web:3000' local.
           CYPRESS_BASE_URL: ${{ github.event.inputs.ambiente_url || secrets.MINHA_URL_SECRETA || 'http://web:3000' }}
         run: |
           docker compose up --abort-on-container-exit --exit-code-from cypress
 
-      - name: Salvar Evidências e Prints do Cypress
+      # 📊 PASSO 1: Transforma o JSON do Cypress em um site HTML do CTRF
+      - name: Gerar Site HTML do Relatório
         if: always()
-        uses: actions/upload-artifact@v4
+        run: |
+          npx github-actions-ctrf ctrf/ctrf-report.json
+          # O comando abaixo converte o relatório em uma página web dentro de uma pasta chamada 'public'
+          npx ctrf html ctrf/ctrf-report.json --output public
+
+      # 🌐 PASSO 2: Pega a pasta 'public' e publica no seu GitHub Pages!
+      - name: Publicar Relatório no GitHub Pages 🚀
+        if: always()
+        uses: PavanMudigonda/html-reporter-github-pages@v1.5.21
         with:
-          name: evidencias-cypress
-          path: |
-            cypress/screenshots/
-            cypress/videos/
+          test_results: 'public' # Pasta onde salvamos o site do relatório
+          keep_reports: true     # Mantém o histórico dos testes anteriores salvos lá!

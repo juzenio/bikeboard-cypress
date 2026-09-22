@@ -25,4 +25,4 @@ services:
     depends_on:
       web:
         condition: service_healthy
-    command: cypress run
+    command: cypress run --reporter cypress-ctrf-json-reporter
