@@ -28,11 +28,9 @@ jobs:
         run: |
           docker compose up --abort-on-container-exit --exit-code-from cypress
 
-      - name: Salvar Evidências e Prints do Cypress
-        if: always()
+      - name: Salvar Relatório de Resultados (JSON)
+        if: always() # Garante o upload mesmo se houver falhas nos testes
         uses: actions/upload-artifact@v4
         with:
-          name: evidencias-cypress
-          path: |
-            cypress/screenshots/
-            cypress/videos/
+          name: resultados-dos-testes
+          path: ctrf/ # Captura a pasta que o plugin acabou de criar
