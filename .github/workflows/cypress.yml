@@ -34,4 +34,3 @@ jobs:
         with:
           name: relatorio-de-testes-html
           path: cypress/reports/ # Captura o HTML com os prints já embutidos dentro dele!
-          if-no-files-found: ignore
